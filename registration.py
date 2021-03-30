@@ -11,18 +11,20 @@ import time
 url = "https://firstclass.uslugi.mosreg.ru/summerform"
 #url = "https://firstclass.uslugi.mosreg.ru/transfer"
 transfer_title = "Выбор образовательной организации, из которой осуществляется перевод"
+no_place = "нет свободных мест"
+default_option = ' Не выбрано '
 
 girl = ' Женский '
 boy = ' Мужской '
 
 rus = ' Свидетельство о рождении '
 alien = ' Свидетельство о рождении иностранного образца '
-birth_doc_path = "/home/mike/test.png"
+birth_doc_path = "/home/mike/work/profi-ru/school_registration/doc_birth.pdf"
 
 child_surname = "Тестовый"
 child_name = "Ученик"
 child_patronym = "Батькович"
-child_gender = girl
+child_gender = boy
 child_birth_date = "01.02.2015"
 child_birth_place = "Россия, г. Челябинск"
 
@@ -34,40 +36,48 @@ doc_depart_name = "Каким-то ЗАГСом"
 
 region_name = " Одинцовский Район "
 city_name = " Одинцово Город "
-street_name = " Белорусская Улица "
-house_number = " 13 Дом "
-flat_number = "10"
+street_name = " Чистяковой Улица "
+house_number = " 16 Дом "
+flat_number = "17"
 
 municipal_name = ' Городской округ Одинцовский '
 school_name = ' МБОУ Одинцовская лингвистическая гимназия '
 
-mother = " Мать "
-father = " Отец "
-parent_gender = " Мужской"
+mother = ' Мать '
+father = ' Отец '
+parent_gender = ' Мужской '
 parent = father
-snils = "18533659198"
-#snils = "11963152861"
+snils = "11963152861"
 
 def select_list(by, selector, search):
     if search == "":
-        return
-    field = chrome.find_element(by, selector)
-    field.location_once_scrolled_into_view
-
-    field.click()
-    chrome.find_element(By.XPATH, "//span[text() = '%s']" % search).click()
+            return
+    try:
+        field = chrome.find_element(by, selector)
+        field.location_once_scrolled_into_view
+        field.click()
+        try:
+            chrome.find_element(By.XPATH, "//span[text() = '%s']" % search).click()
+            #pdb.set_trace()
+            #chrome.find_element(By.XPATH, "//span[contains(text(), %s)]" % search).click()
+        except Exception:
+            print("Error when select option! \n")
+            chrome.find_element(By.XPATH, "//span[text() = ' Не выбрано ']").click()
+    except Exception:
+        print(" Error when click to select list!\n")
+        pdb.set_trace()
 
 def check_transfer_form():
     correct = False
     while correct == False:
         try:
             chrome.find_element(By.XPATH, "//div[@group-title = 'Выбор образовательной организации, из которой осуществляется перевод']")
-            print("Incorrect form!")
+            print("Incorrect form!\n")
             pdb.set_trace()
             chrome.refresh()
             keep()
         except NoSuchElementException:
-            print("Correct form!")
+            print("Correct form!\n")
             correct = True
 
 # keep agree
@@ -83,20 +93,15 @@ def keep():
         pdb.set_trace()
 
 
-def gender(selector, g):
+def set_gender(selector, g):
     try:
-        value = chrome.find_element(By.XPATH, selector)
-        pdb.set_trace()
-        if g in value.text:
-            return
-        else:
-            select_list(By.XPATH, selector, g)
+        select_list(By.XPATH, selector, g)
     except Exception:
         print("eror when set Gender")
         pdb.set_trace()
 
 # set personal info
-def personal_info(who):
+def personal(who):
     if who == 'c':
         id_last_name = "id_childLastName"
         last_name = child_surname
@@ -139,7 +144,7 @@ def personal_info(who):
         print("eror when set Patronim")
         pdb.set_trace()
 
-    gender(xpath_gender, gender)
+    set_gender(xpath_gender, gender)
 
     # set birthdate
     try:
@@ -151,12 +156,12 @@ def personal_info(who):
     if who == 'c':
         # set birth place
         try:
-            chrome.find_element(By.ID, "id_childBirthPlace").send_keys(birth_place)
+            chrome.find_element(By.ID, "id_childBirthPlace").send_keys(child_birth_place)
         except Exception:
             print("eror when set BirthPlace")
             pdb.set_trace()   
     else:
-        gender("//div[@data-name='parentGender']", parent_gender)
+        set_gender("//div[@data-name='parentGender']", parent_gender)
         try:
             chrome.find_element(By.ID, "id_parentSnils").send_keys(snils)
         except Exception:
@@ -215,9 +220,18 @@ def region():
         field = chrome.find_element(By.ID, "id_district")
         field.location_once_scrolled_into_view
         field.click()
-        chrome.find_element(By.ID, "mat-input-7").send_keys("Одинцовский")
-        time.sleep(1)
-        chrome.find_element(By.XPATH, "//span[text() = '%s']" % region_name).click()
+        try:
+            chrome.find_element(By.ID, "mat-input-7").send_keys("Одинцовский")
+            time.sleep(1)
+            try:
+                chrome.find_element(By.XPATH, "//span[text() = '%s']" % region_name).click()
+            except Exception:
+                chrome.find_element(By.XPATH, "//span[text() = ' Не выбрано ']").click()
+                print("Error when select option! \n")
+                pdb.set_trace()
+        except Exception:
+            print("Error when input search string! \n")
+            pdb.set_trace()
     except Exception:
         print("eror when set region")
         pdb.set_trace()
@@ -231,16 +245,21 @@ def city():
 
 def street():
     try:
-        select_list(By.ID, "id_street", street_name)
+        field = chrome.find_element(By.ID, "id_street")
+        field.location_once_scrolled_into_view
+        field.click()
+        chrome.find_element(By.ID, "mat-input-13").send_keys("Чистяковой")
+        time.sleep(1)
+        chrome.find_element(By.XPATH, "//span[text() = '%s']" % street_name).click()
     except Exception:
-        print("eror when set street")
+        print("eror when set street\n")
         pdb.set_trace()
 
 def house():
     try:
         select_list(By.ID, "id_house", house_number)
     except Exception:
-        print("eror when set house")
+        print("eror when set house\n")
         pdb.set_trace()
 
 def flat():
@@ -248,14 +267,14 @@ def flat():
         inp = chrome.find_element(By.ID, "id_regFlat")
         inp.send_keys(flat_number)
     except Exception:
-        print("eror when set flat number")
+        print("eror when set flat number\n")
         pdb.set_trace()
 
 def municipal():
     try:
         select_list(By.XPATH, "//div[@data-name = 'munObr']", municipal_name)
     except Exception:
-        print("eror when set Municipal place")
+        print("eror when set Municipal place\n")
         pdb.set_trace()
 
 def school():
@@ -265,7 +284,7 @@ def school():
         field.click()
         chrome.find_element(By.XPATH, "//span[text() = '%s']" % school_name).click()
     except Exception:
-        print("AHTUNG!!! ERROR WHEN SET SCHOOL!")
+        print("AHTUNG!!! ERROR WHEN SET SCHOOL!\n")
         pdb.set_trace()
 
 def year():
@@ -278,6 +297,19 @@ def year():
     except Exception:
         print("eror when set year")
         pdb.set_trace()
+
+def free_place():
+    try:
+        info = chrome.find_element(By.XPATH, "//p//strong").text
+        if info == no_place:
+            result = 0
+        else:
+            result = int(info)
+    except Exception:
+        result = 0
+        print("error in free place informer\n")
+    finally:
+        return result
 
 def school_data():
     municipal()
@@ -293,7 +325,7 @@ def submit():
         else:
             pdb.set_trace()
     except Exception:
-        print("eror when submit form!")
+        print("eror when submit form!\n")
         pdb.set_trace()
 
 def live():
@@ -306,15 +338,18 @@ def live():
 def child_form():
     keep()
     check_transfer_form()
-    personal_info('c')
+    personal('c')
     birth()
-    region()
-    city()
-    street()
-    house()
-    flat()
+    live()
     school_data()
-    submit()
+    time.sleep(0.5)
+    number_place = free_place()
+    if number_place == 0:
+        print("No free place in the school!\n")
+        pdb.set_trace()
+    else:
+        print("There is a %s free place in the school!\n" % number_place)
+        submit()
 
 def parent_form():
     personal_info('p')
@@ -323,9 +358,12 @@ def parent_form():
 
 chrome = webdriver.Chrome()
 chrome.set_window_position(0,0)
-chrome.set_window_size(700,800)
+chrome.set_window_size(680,800)
 #pdb.set_trace()
 chrome.get(url)
 child_form()
+
+#keep()
+#select_list(By.ID, "id_district", region_name)
 pdb.set_trace()
 chrome.close()
