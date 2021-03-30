@@ -8,8 +8,8 @@ from selenium.common.exceptions import NoSuchElementException
 import pdb
 import time
 
-url = "https://firstclass.uslugi.mosreg.ru/summerform"
-#url = "https://firstclass.uslugi.mosreg.ru/transfer"
+#url = "https://firstclass.uslugi.mosreg.ru/summerform"
+url = "https://firstclass.uslugi.mosreg.ru/transfer"
 transfer_title = "Выбор образовательной организации, из которой осуществляется перевод"
 no_place = "нет свободных мест"
 default_option = ' Не выбрано '
@@ -196,9 +196,7 @@ def upload_birth():
         print("eror when upload BirthDoc")
         pdb.set_trace()
 
-def birth():
-    birth_document_type()
-
+def birth_doc():
     try:
         serial = chrome.find_element(By.ID, "id_childDocSeries")
         serial.send_keys(doc_serial)
@@ -215,6 +213,9 @@ def birth():
         print("eror when set DocBirth")
         pdb.set_trace()
 
+def bir():
+    birth_document_type()
+    birth_doc()
     upload_birth()    
 
 def region():
@@ -280,7 +281,7 @@ def municipal():
         print("eror when set Municipal place\n")
         pdb.set_trace()
 
-def school():
+def set_school():
     try:
         field = chrome.find_element(By.XPATH, "//div[@data-name = 'selectedSchools']")
         field.location_once_scrolled_into_view
@@ -314,9 +315,9 @@ def free_place():
     finally:
         return result
 
-def school_data():
+def sch():
     municipal()
-    school()
+    set_school()
     year()
 
 def submit():
@@ -338,13 +339,16 @@ def live():
     house()
     flat() 
 
+def pers():
+    personal('c')
+
 def child_form():
     keep()
     check_transfer_form()
-    personal('c')
-    birth()
+    pers()
+    bir()
     live()
-    school_data()
+    sch()
     time.sleep(0.5)
     number_place = free_place()
     if number_place == 0:
