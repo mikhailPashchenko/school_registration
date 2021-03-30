@@ -49,6 +49,9 @@ parent_gender = ' Мужской '
 parent = father
 snils = "11963152861"
 
+def reset():
+    chrome.refresh()
+
 def select_list(by, selector, search):
     if search == "":
             return
